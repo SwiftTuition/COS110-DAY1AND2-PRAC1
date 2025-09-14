@@ -1,7 +1,8 @@
 # Compiled files
 *.o
 *.out
-oddjobs
+renttracker
+test_runner
 a.out
 
 # IDE files
@@ -16,5 +17,4 @@ core
 vgcore.*
 
 # Test outputs
-test_output.txt
-valgrind_output.txt
+*.txt
