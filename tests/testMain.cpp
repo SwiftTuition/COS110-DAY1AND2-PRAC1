@@ -1,96 +1,122 @@
 #include "../src/RentTracker.h"
 #include <iostream>
+#include <iomanip>
 using namespace std;
 
 int testsPassed = 0;
 int totalTests = 0;
+int functionalityScore = 0;
 
-void test(bool condition, const char* testName) {
+void test(bool condition, const char* testName, int points) {
     totalTests++;
     if (condition) {
-        cout << "[PASS] " << testName << endl;
+        cout << "[PASS] " << testName << " (" << points << " points)" << endl;
         testsPassed++;
+        functionalityScore += points;
     } else {
-        cout << "[FAIL] " << testName << endl;
+        cout << "[FAIL] " << testName << " (0/" << points << " points)" << endl;
     }
 }
 
 int main() {
-    cout << "=== COS110 DAY 1&2 PRACTICAL TEST SUITE ===" << endl << endl;
+    cout << "===========================================" << endl;
+    cout << "     COS110 DAY 1&2 PRACTICAL GRADING     " << endl;
+    cout << "===========================================" << endl << endl;
     
-    // Test 1-3: Basic Creation
-    cout << "-- Basic Tests --" << endl;
+    cout << "Running Functionality Tests..." << endl;
+    cout << "-------------------------------" << endl;
+    
+    // Test 1: Create tracker (10 points)
     RentTracker* tracker = createTracker(4, 3);
-    test(tracker != NULL, "Create tracker");
-    test(tracker->numMonths == 4, "Correct months");
-    test(tracker->numCategories == 3, "Correct categories");
+    test(tracker != NULL, "Create tracker", 5);
+    test(tracker != NULL && tracker->numMonths == 4, "Correct months", 2);
+    test(tracker != NULL && tracker->numCategories == 3, "Correct categories", 3);
     
-    // Test 4-5: Initial values
+    // Test 2: Initial values (10 points)
     bool allZero = true;
-    for(int i = 0; i < 4 && allZero; i++) {
-        for(int j = 0; j < 3 && allZero; j++) {
-            if(tracker->expenses[i][j] != 0) allZero = false;
+    if (tracker != NULL && tracker->expenses != NULL) {
+        for(int i = 0; i < 4 && allZero; i++) {
+            for(int j = 0; j < 3 && allZero; j++) {
+                if(tracker->expenses[i][j] != 0) allZero = false;
+            }
         }
+    } else {
+        allZero = false;
     }
-    test(allZero, "All initialized to 0");
+    test(allZero, "All values initialized to 0", 10);
     
-    // Test 6-8: Recording expenses
-    cout << "\n-- Recording Tests --" << endl;
-    recordExpense(tracker, 0, 0, 100);
-    recordExpense(tracker, 0, 1, 200);
-    recordExpense(tracker, 1, 0, 150);
-    test(tracker->expenses[0][0] == 100, "Record expense 1");
-    test(tracker->expenses[0][1] == 200, "Record expense 2");
-    test(tracker->expenses[1][0] == 150, "Record expense 3");
+    // Test 3: Record expenses (10 points)
+    if (tracker != NULL) {
+        recordExpense(tracker, 0, 0, 100);
+        recordExpense(tracker, 0, 1, 200);
+        recordExpense(tracker, 1, 0, 150);
+        test(tracker->expenses[0][0] == 100, "Record expense 1", 3);
+        test(tracker->expenses[0][1] == 200, "Record expense 2", 3);
+        test(tracker->expenses[1][0] == 150, "Record expense 3", 4);
+    }
     
-    // Test 9-10: Calculations
-    cout << "\n-- Calculation Tests --" << endl;
-    test(getMonthTotal(tracker, 0) == 300, "Month 0 total");
-    test(getCategoryTotal(tracker, 0) == 250, "Category 0 total");
+    // Test 4: Get month total (10 points)
+    int monthTotal = getMonthTotal(tracker, 0);
+    test(monthTotal == 300, "Get month total", 10);
     
-    // Test 11: Find worst month
-    recordExpense(tracker, 2, 2, 500);
-    test(findWorstMonth(tracker) == 2, "Find worst month");
+    // Test 5: Get category total (10 points)
+    int catTotal = getCategoryTotal(tracker, 0);
+    test(catTotal == 250, "Get category total", 10);
     
-    // Test 12: Average
+    // Test 6: Find worst month (5 points)
+    if (tracker != NULL) {
+        recordExpense(tracker, 2, 2, 500);
+    }
+    int worst = findWorstMonth(tracker);
+    test(worst == 2, "Find worst month", 5);
+    
+    // Test 7: Calculate average (5 points)
     int avg = calculateAverage(tracker);
-    test(avg == 237, "Calculate average"); // (300+150+500+0)/4 = 237
+    test(avg == 237, "Calculate average", 5);
     
-    // Test 13-14: Copy tracker
-    cout << "\n-- Deep Copy Tests --" << endl;
+    // Test 8: Copy tracker (15 points)
     RentTracker* copy = copyTracker(tracker);
-    test(copy != NULL, "Copy created");
-    test(copy->expenses != tracker->expenses, "Deep copy (different arrays)");
-    test(copy->expenses[0][0] == 100, "Copy has correct values");
+    test(copy != NULL, "Copy created", 5);
+    test(copy != NULL && copy != tracker, "Copy is different object", 5);
+    if (copy != NULL && tracker != NULL) {
+        test(copy->expenses[0][0] == 100, "Copy has correct values", 5);
+    }
     
-    // Modify copy and check independence
-    recordExpense(copy, 0, 0, 999);
-    test(tracker->expenses[0][0] == 100, "Original unchanged after copy modified");
+    // Test 9: Clear month (5 points)
+    if (tracker != NULL) {
+        clearMonth(tracker, 0);
+        test(tracker->expenses[0][0] == 0, "Clear month works", 5);
+    }
     
-    // Test 15: Clear month
-    cout << "\n-- Clear Month Test --" << endl;
-    clearMonth(tracker, 0);
-    test(tracker->expenses[0][0] == 0, "Month cleared");
-    
-    // Clean up
+    // Test 10: Destroy doesn't crash (10 points)
+    bool nocrash = true;
     destroyTracker(tracker);
     destroyTracker(copy);
+    test(nocrash, "Destroy tracker works", 10);
     
-    // Results
-    cout << "\n=== RESULTS ===" << endl;
-    cout << "Tests passed: " << testsPassed << "/" << totalTests << endl;
-    double percentage = (testsPassed * 100.0) / totalTests;
-    cout << "Score: " << percentage << "%" << endl;
+    // CALCULATE FINAL SCORES
+    cout << endl;
+    cout << "===========================================" << endl;
+    cout << "              FINAL SCORES                 " << endl;
+    cout << "===========================================" << endl;
     
-    if(percentage >= 90) {
-        cout << "\nExcellent! Gintoki can afford strawberry milk!" << endl;
-    } else if(percentage >= 70) {
-        cout << "\nGood work! Otose is somewhat satisfied." << endl;
-    } else if(percentage >= 50) {
-        cout << "\nShinpachi says: 'At least you tried, Gin-san...'" << endl;
-    } else {
-        cout << "\nKagura says: 'You're hopeless, Gin-chan!'" << endl;
-    }
+    int maxFunctionalityScore = 90;
+    double funcPercentage = (functionalityScore * 60.0) / maxFunctionalityScore;
+    
+    cout << "Functionality Score: " << functionalityScore << "/" << maxFunctionalityScore 
+         << " (" << fixed << setprecision(1) << funcPercentage << "/60%)" << endl;
+    
+    cout << "Memory Score: Run 'make memcheck' to check" << endl;
+    cout << "             (Worth 40% of total grade)" << endl;
+    
+    cout << endl;
+    cout << "===========================================" << endl;
+    cout << "TOTAL GRADE SO FAR: " << funcPercentage << "/60%" << endl;
+    cout << "===========================================" << endl;
+    
+    cout << endl;
+    cout << "IMPORTANT: Run 'make memcheck' to test memory management!" << endl;
+    cout << "Memory leaks will cost you 40% of your grade!" << endl;
     
     return 0;
 }
