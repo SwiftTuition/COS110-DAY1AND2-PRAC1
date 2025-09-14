@@ -1,0 +1,20 @@
+# Compiled files
+*.o
+*.out
+oddjobs
+a.out
+
+# IDE files
+.vscode/
+*.swp
+*.swo
+*~
+
+# Debug files
+*.dSYM/
+core
+vgcore.*
+
+# Test outputs
+test_output.txt
+valgrind_output.txt
